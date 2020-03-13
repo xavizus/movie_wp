@@ -15,8 +15,8 @@
 get_header();
 ?>
 
-	<div id="primary" class="content-area">
-		<main id="main" class="site-main">
+	<div id="primary" class="content-area mt-5">
+		<main id="main" class="site-main container">
 
 		<?php
 		if ( have_posts() ) :
@@ -28,9 +28,14 @@ get_header();
 				</header>
 				<?php
 			endif;
-
+			?>
+			<div class="row">
+			<?php
 			/* Start the Loop */
 			while ( have_posts() ) :
+				?>
+				<div class="col-4">
+				<?php
 				the_post();
 
 				/*
@@ -39,7 +44,7 @@ get_header();
 				 * called content-___.php (where ___ is the Post Type name) and that will be used instead.
 				 */
 				get_template_part( 'template-parts/content', get_post_type() );
-
+				echo "</div>";
 			endwhile;
 
 			the_posts_navigation();
@@ -50,10 +55,11 @@ get_header();
 
 		endif;
 		?>
-
+		</div>
+		<div class="row">
+		<?= get_footer(); ?>
+		</div>
 		</main><!-- #main -->
 	</div><!-- #primary -->
 
 <?php
-get_sidebar();
-get_footer();
