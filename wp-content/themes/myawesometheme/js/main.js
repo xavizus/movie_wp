@@ -1,3 +1,4 @@
+/*
 async function fetchMultipleUrls(urls) {
 
   let tasks = urls.map(async url => {
@@ -60,3 +61,4 @@ $(function () {
     minLength: 3
   });
 });
+*/

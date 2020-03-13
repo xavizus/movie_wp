@@ -15,5 +15,6 @@ Ni ska bygga en film-site i WordPress.
 - [x] Pluginet ska skapa sina datastrukturer (som cpt och liknande) när det aktiveras och städa efter sig när det avaktiveras.
 - [x] Metaboxen (för IMDb-id) ska skapas i ditt plugin, alltså inte via tredjepartsplugin som t ex ACF.
 - [ ] Det ska finnas en egengjord filmlista (archive). Du måste visa att du förstår WPs arkitektur tillräckligt bra för att göra det på ett beständigt sätt.
+  - Kommentar från lärare __Jag tänker t ex att din lista inte ska försvinna om du uppdaterar temat. Annars tänker jag mig att man gör ett arkiv, men ja, att loopa filmer på en sida.__
   - [ ] I filmlistan ska de filmer som har ett IMDb-id ifyllt indikeras med en liten ikon eller liknande.
 - [ ] Man kan bara få VG om man blir klar i tid.

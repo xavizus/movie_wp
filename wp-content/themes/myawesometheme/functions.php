@@ -44,7 +44,7 @@ if ( ! function_exists( 'myawesometheme_setup' ) ) :
 
 		// This theme uses wp_nav_menu() in one location.
 		register_nav_menus( array(
-			'menu-1' => esc_html__( 'Primary', 'myawesometheme' ),
+			'myawesomemenu' => esc_html__( 'Primary', 'myawesometheme' ),
 		) );
 
 		/*
@@ -114,7 +114,7 @@ function myawesometheme_widgets_init() {
 		'after_title'   => '</h2>',
 	) );
 }
-# add_action( 'widgets_init', 'myawesometheme_widgets_init' );
+add_action( 'widgets_init', 'myawesometheme_widgets_init' );
 
 /**
  * Enqueue scripts and styles.

@@ -61,12 +61,12 @@
 						aria-expanded="false" aria-label="Toggle navigation">
 						<span class="navbar-toggler-icon"></span>
 					</button>
-					<a class="navbar-brand" href="<?php echo home_url(); ?>"><?php get_bloginfo('name'); ?></a>
+					<a class="navbar-brand" href="<?php echo home_url(); ?>"><?php bloginfo( 'name' ); ?></a>
 					<?php
         wp_nav_menu( array(
-            'theme_location'    => 'ourawesomemenu',
+            'theme_location'    => 'myawesomemenu',
 			'container'         => 'div',
-			'depth'				=> 2,
+			'depth'				=> 1,
             'container_class'   => 'collapse navbar-collapse',
             'container_id'      => 'bs-example-navbar-collapse-1',
             'menu_class'        => 'nav navbar-nav',
