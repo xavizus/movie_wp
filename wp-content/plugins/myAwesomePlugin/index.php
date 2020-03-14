@@ -317,6 +317,10 @@ if (!class_exists('test\MovieRajtingPlugin')) {
             'search_items'        => __('Search Movie', 'myAwesomeTheme'),
             'not_found'           => __('Not Found', 'myAwesomeTheme'),
             'not_found_in_trash'  => __('Not found in Trash', 'myAwesomeTheme'),
+            'featured_image'      => __('Poster image', 'myAwesomeTheme'),
+            'set_featured_image'  => __('Set poster image', 'myAwesomeTheme'),
+            'remove_featured_image' => __('Remove poster image', 'myAwesomeTheme'),
+            'use_featured_image'  => __('Use as poster image', 'myAwesomeTheme')
             );
          
             // Set other options for Custom Post Type
