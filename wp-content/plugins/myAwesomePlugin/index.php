@@ -21,6 +21,11 @@ namespace test;
 if (!class_exists('test\MovieRajtingPlugin')) {
     class MovieRajtingPlugin
     {
+        private const DOESNOTEXIST = 1;
+        private const RATINGNOTINRANGE = 2;
+        private const RATINGCANTBECHANGED = 3;
+        private const ERRORONCREATEPOSTMETA = 4;
+        private const NOTRATED = 5;
 
         /**
          * Used for set max / min values for the rating.
@@ -29,6 +34,7 @@ if (!class_exists('test\MovieRajtingPlugin')) {
             'max' => 5,
             'min' => 1
         );
+        private $failedToFetchIMDB = false;
 
         /**
          * Default metaDataFields
@@ -51,6 +57,7 @@ if (!class_exists('test\MovieRajtingPlugin')) {
             add_action('rest_api_init', array($this, 'loadCustomApi'));
             add_action('save_post_movies', array($this, 'save_meta_data'), 10, 2);
             add_action('wp_insert_post_data', array($this, 'my_save_post'));
+            add_filter('posts_results', array($this, 'orderByRating'), 10, 2);
         }
 
         /**
@@ -64,8 +71,9 @@ if (!class_exists('test\MovieRajtingPlugin')) {
                 if ($_POST['movie_autofilled'] == '0' && !empty($_POST['movie_imdb_id'])) {
                     $data = $this->fetchIMDBData(sanitize_text_field($_POST['movie_imdb_id']));
                     if ($data->Response == 'False') {
+                        $this->failedToFetchIMDB = true;
                         // Gutenberg api sucks... Can't find any information on how to send an error to Gutenberg, to let it know something went wrong...
-                        return new \WP_Error('rest_invalid_param', 'E-Mail not found in directory', array( 'status' => 400));
+                        return;
                     }
                     $_POST['movie_released'] = $data->Released;
                     $_POST['movie_actors'] = $data->Actors;
@@ -93,6 +101,11 @@ if (!class_exists('test\MovieRajtingPlugin')) {
              * Loop through meta_keys and update them.
              */
             foreach ($this->metaDataFields as $key => $field) {
+                // Don't save IMDB field, if it's invalid.
+                if ($field == 'movie_imdb_id' && !$this->failedToFetchIMDB) {
+                    continue;
+                }
+
                 if (array_key_exists($field, $_POST)) {
                     update_post_meta(
                         $post_ID,
@@ -159,12 +172,62 @@ if (!class_exists('test\MovieRajtingPlugin')) {
                 'callback' => array($this, 'fetchIMDBData')
               ));
 
-              register_rest_route('myAwesomePlugin/v1', '/setRating/post_id=(?P<post_id>[0-9]+)/rating=(?P<rating>[0-9])', array(
+            register_rest_route(
+                'myAwesomePlugin/v1',
+                '/setRating/post_id=(?P<post_id>[0-9]+)/rating=(?P<rating>[0-9])',
+                array(
+                    'methods' => 'GET',
+                    'callback' => array($this, 'setRatingToPost')
+                )
+            );
+              register_rest_route('myAwesomePlugin/v1', '/getRating/post_id=(?P<post_id>[0-9]+)', array(
                 'methods' => 'GET',
-                'callback' => array($this, 'setRatingToPost')
+                'callback' => array($this, 'getRatingFromIP')
               ));
         }
 
+        public function getRatingFromIP($request)
+        {
+            $data = array();
+            $data['Response'] = true;
+            try {
+                //get post data.
+                $the_post = get_post($request['post_id']);
+
+                //If the post data is empty or the post is not published
+                if (!$the_post || $the_post->post_status != 'publish') {
+                    throw new \Exception(
+                        "Post with id: $request[post_id] does not exist or is not published!",
+                        $this::DOESNOTEXIST
+                    );
+                }
+                // retrive metadata of the post
+                $currentMetaData = get_post_meta($request['post_id'], '_movies_ratings');
+
+                if (!$currentMetaData) {
+                    throw new \Exception("User have not rated this movie yet!", $this::NOTRATED);
+                }
+
+                // Check if we got metadata (otherwise it's an empty array)
+                if ($currentMetaData) {
+                    // decode the metaData, and make it all arrays instead of array of objects.
+                    $currentMetaData = json_decode($currentMetaData[0], true);
+
+                    // check if the ip-adress have rated before (Not the best solution, but hey :D )
+                    $keyPosition = $this->searchForIp($_SERVER['REMOTE_ADDR'], $currentMetaData);
+                }
+
+                $data['rating'] = $currentMetaData[$keyPosition]['score'];
+            } catch (\Exception $error) {
+                //Clear all info we already had.
+                $data = array();
+                $data['Response'] = false;
+                $data['Error'] = $error->getMessage();
+                $data['ErrorCode'] = $error->getCode();
+            } finally {
+                return $data;
+            }
+        }
         /**
          * Sets rating to post (If it's successfully inserted)
          */
@@ -176,65 +239,96 @@ if (!class_exists('test\MovieRajtingPlugin')) {
             $data = [];
             $data['post_id'] = $request['post_id'];
             $data['rating'] =  $request['rating'];
-            $data['ip'] = $_SERVER['REMOTE_ADDR'];
-            $data['Response'] = "True";
+            $data['Response'] = true;
 
             try {
                 //get post data.
                 $the_post = get_post($data['post_id']);
 
-                //If the post data is empty or the post is not published
+            //If the post data is empty or the post is not published
                 if (!$the_post || $the_post->post_status != 'publish') {
-                    throw new \Exception("Post with id: $data[post_id] does not exist or is not published!");
+                    throw new \Exception(
+                        "Post with id: $data[post_id] does not exist or is not published!",
+                        $this::DOESNOTEXIST
+                    );
                 }
 
-                // check if the rating is within the limit.
-                if (!$this->isRatingWithinRange($data['rating'], $this->ratingRange['max'], $this->ratingRange['min'])) {
-                    throw new \Exception("Rating not within range. Submitted rating: $data[rating], allwoed range: {$this->ratingRange['min']} - {$this->ratingRange['max']}");
+            // check if the rating is within the limit.
+                if (
+                    !$this->isRatingWithinRange(
+                        $data['rating'],
+                        $this->ratingRange['max'],
+                        $this->ratingRange['min']
+                    )
+                ) {
+                    throw new \Exception(
+                        "Rating not within range. Submitted rating: $data[rating], allwoed range: 
+                        {$this->ratingRange['min']} - {$this->ratingRange['max']}",
+                        $this::RATINGNOTINRANGE
+                    );
                 }
 
-                // retrive metadata of the post
+            // retrive metadata of the post
                 $currentMetaData = get_post_meta($data['post_id'], '_movies_ratings');
 
-                // Check if we got metadata (otherwise it's an empty array)
+            // Check if we got metadata (otherwise it's an empty array)
                 if ($currentMetaData) {
                     // decode the metaData, and make it all arrays instead of array of objects.
                     $currentMetaData = json_decode($currentMetaData[0], true);
 
                     // check if the ip-adress have rated before (Not the best solution, but hey :D )
-                    $data['key'] = $this->searchForIp($data['ip'], $currentMetaData);
+                    $keyPosition = $this->searchForIp($_SERVER['REMOTE_ADDR'], $currentMetaData);
                 }
 
                 // If the ip-adress have rated before, check if the new rating is the same as the old rating.
-                if ((isset($data['key']) && $data['key'] !== false) && ($currentMetaData[$data['key']]['score'] == $data['rating'])) {
-                    throw new \Exception('You cannot change rating to the same rating!');
+                if (
+                    (isset($keyPosition) && $keyPosition !== false) &&
+                    ($currentMetaData[$keyPosition]['score'] == $data['rating'])
+                ) {
+                    throw new \Exception('You cannot change rating to the same rating!', $this::RATINGCANTBECHANGED);
                 }
 
                 // if there have not been any ratings on the post, or the IP-adress have not rated the post before
-                if (empty($currentMetaData) || $data['key'] === false) {
+                if (empty($currentMetaData) || $keyPosition === false) {
                     $currentMetaData[] = array(
-                        "ip" => $data['ip'],
+                        "ip" => $_SERVER['REMOTE_ADDR'],
                         'score' => $data['rating']
                     );
                 } else {
                     // if the ip-adress have rated before, update that rating.
-                    $currentMetaData[$data['key']]['score'] = $data['rating'];
+                    $currentMetaData[$keyPosition]['score'] = $data['rating'];
                 }
                 // Update post meta
                 $status = update_post_meta($data['post_id'], '_movies_ratings', json_encode($currentMetaData));
 
+                $data['newScore'] = $this->calculateRating($currentMetaData);
+                
+                update_post_meta($data['post_id'], '_movies_totalRating', $data['newScore']);
+
                 // if the update went wrong.
                 if (!$status) {
-                    throw new \Exception("Could not update or create post meta! $status");
+                    throw new \Exception("Could not update or create post meta! $status", $this::ERRORONCREATEPOSTMETA);
                 }
             } catch (\Exception $error) {
                 //Clear all info we already had.
                 $data = [];
-                $data['Response'] = "False";
+                $data['Response'] = false;
                 $data['Error'] = $error->getMessage();
+                $data['ErrorCode'] = $error->getCode();
             }
             // return response.
             return $data;
+        }
+
+        private function calculateRating($currentMetaData)
+        {
+            $totalStars = 0;
+            $totalRaters = 0;
+            foreach ($currentMetaData as $post) {
+                $totalStars += $post['score'];
+                $totalRaters++;
+            }
+            return round($totalStars / $totalRaters, 1, PHP_ROUND_HALF_DOWN);
         }
 
 
@@ -280,7 +374,6 @@ if (!class_exists('test\MovieRajtingPlugin')) {
                 wp_enqueue_style('movies-style', plugin_dir_url(__FILE__) . "/css/style.css", array(), '1.0');
                 wp_enqueue_style('movies-bootstrap', plugin_dir_url(__FILE__) . "/css/bootstrap.min.css", array(), '1.0');
                 wp_enqueue_script('movies-latest-jquery', plugin_dir_url(__FILE__) . '/js/jquery.js');
-                #wp_enqueue_script('movies-main-script', plugin_dir_url(__FILE__) . '/js/main.js', array('movies-latest-jquery'));
                 add_action('enqueue_block_editor_assets', array($this, 'myplugin_enqueue_block_editor_assets'));
             }
         }
@@ -460,7 +553,54 @@ if (!class_exists('test\MovieRajtingPlugin')) {
             if (!is_admin() &&  $query->is_main_query() && $query->is_front_page()) {
                 $query->set('post_type', 'movies');
                 $query->set('post_status', 'publish');
+                $query->set('orderby', 'rating');
+                $query->set('order', 'DESC');
             }
+        }
+
+        /**
+         * Changes the order by rating
+         */
+        public function orderByRating($posts, $query)
+        {
+            // Make sure we are using the order, only when orderby is rating.
+            if (!is_admin() && $query->is_main_query() && $query->get('orderby') === 'rating') {
+                // Remove previous filters
+                remove_filter(current_filter(), __FUNCTION__, 10, 2);
+                // Arrays to keep track of everything.
+                $nonrated = array();
+                $rated = array();
+                $ratings = array();
+
+                // Loop through all posts
+                foreach ($posts as $post) {
+                    // Get the rating of the post
+                    $rating = get_post_meta($post->ID, '_movies_totalRating', true);
+
+                    // If the post got a rating, else.
+                    if ($rating) {
+                        // store the rating in the array
+                        $ratings[] = $rating;
+                        // push the post to rated array.
+                        $rated[] = $post;
+                    } else {
+                        // store the unrated post.
+                        $nonrated[] = $post;
+                    }
+                }
+                // Only do this, if the rated is not empty
+                if (!empty($rated)) {
+                    // Do a multiarray sort, based on $ratings.
+                    array_multisort($ratings, SORT_DESC, $rated);
+                }
+                // If DESC is set, it will show the rated movies first, and then nonrated.
+                $order = strtoupper($query->get('order')) === 'ASC' ? 'ASC' : 'DESC';
+                $posts = ($order === 'ASC') ?
+                array_merge($nonrated, $rated) :
+                array_merge($rated, $nonrated);
+            }
+
+            return $posts;
         }
     }
 }

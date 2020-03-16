@@ -1082,3 +1082,41 @@ object {
 .form-group label {
 	vertical-align:baseline !important;
 }
+
+.ratings>.hover {
+	color: yellow;
+  }
+  
+  .ratings>.checked {
+	color: orange;
+  }
+
+  .rating-block {
+	display: inline-block;
+	margin: 2px;
+  }
+  .is-ok {
+	  border: 1px solid green;
+	  border-radius: 8px;
+  }
+  
+/*
+* from: https://mdjunaidalam5.github.io/SpinBolt/
+*/
+.sbl-circ-path {
+	height: 16px;
+	width: 16px;
+	color: rgba(90, 90, 90, 0.2);
+	position: relative;
+	display: inline-block;
+	border: 5px solid;
+	border-radius: 50%;
+	border-right-color: #5a5a5a;
+	animation: rotate 1s linear infinite; }
+  
+  @keyframes rotate {
+	0% {
+	  transform: rotate(0); }
+	100% {
+	  transform: rotate(360deg); } }
+  

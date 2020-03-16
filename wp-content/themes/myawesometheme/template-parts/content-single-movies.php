@@ -34,6 +34,13 @@ foreach ($metaData as $data) {
 	<?php myawesometheme_post_thumbnail(); ?>
 
 	<div class="entry-content">
+	<div id="userRatings" class="ratings rating-block">
+                                <span class="fa fa-star"></span>
+                                <span class="fa fa-star"></span>
+                                <span class="fa fa-star"></span>
+                                <span class="fa fa-star"></span>
+                                <span class="fa fa-star"></span>
+                        </div>
 		<?php
 		the_content( sprintf(
 			wp_kses(

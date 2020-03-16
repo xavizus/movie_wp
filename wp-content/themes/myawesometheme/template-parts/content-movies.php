@@ -10,19 +10,6 @@
 ?>
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
-	<header class="entry-header">
-		<?php
-        /*
-		if ( is_singular() ) :
-			the_title( '<h1 class="entry-title">', '</h1>' );
-		else :
-			the_title( '<h2 class="entry-title"><a href="' . esc_url( get_permalink() ) . '" rel="bookmark">', '</a></h2>' );
-        endif;
-        */
-		?>
-	</header><!-- .entry-header -->
-
-	<?php #myawesometheme_post_thumbnail(); ?>
 
 	<div class="entry-content">
 
@@ -33,6 +20,14 @@
         <p class="card-text"><?=wp_strip_all_tags(get_the_content())?></p>
             <a href="<?= esc_url( get_permalink())?>" class="btn btn-primary">See more</a>
         </div>
+        <?php 
+        $total_rating =  get_post_meta(get_the_ID(), '_movies_totalRating', true); 
+        if($total_rating):
+        ?>
+		<div class="card-footer text-muted">
+    		Total Score: <?=$total_rating  ?>
+  		</div>
+        <?php endif; ?>
         </div>
 	</div><!-- .entry-content -->
 

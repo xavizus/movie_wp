@@ -181,3 +181,15 @@ function my_theme_archive_title( $title ) {
 }
 
 add_filter( 'get_the_archive_title', 'my_theme_archive_title' );
+
+function load_scripts() {
+	if(is_single()) {
+		global $post;
+		wp_enqueue_script('main-script', get_stylesheet_directory_uri() . '/js/main.js', array('jquery'));
+		wp_localize_script('main-script', 'post_vars', array(
+		'postID' => $post->ID
+	));
+	}
+}
+
+add_action('wp_enqueue_scripts','load_scripts');

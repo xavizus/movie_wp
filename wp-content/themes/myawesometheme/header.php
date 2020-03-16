@@ -17,12 +17,11 @@
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="<?= get_stylesheet_directory_uri();?>/css/bootstrap.min.css">
-	<link rel="stylesheet" href="<?= get_stylesheet_directory_uri();?>/css/jquery-ui.min.css">
 	<script src="<?= get_stylesheet_directory_uri();?>/js/jquery.js"></script>
 	<script src="<?= get_stylesheet_directory_uri();?>/js/bootstrap.min.js"></script>
 	<script src="<?= get_stylesheet_directory_uri();?>/js/jquery-ui.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link rel="profile" href="https://gmpg.org/xfn/11">
-	<script src="<?= get_stylesheet_directory_uri();?>/js/main.js"></script>
 	<?php wp_head(); ?>
 </head>
 
@@ -32,27 +31,6 @@
 			href="#content"><?php esc_html_e( 'Skip to content', 'myAwesomeTheme' ); ?></a>
 
 		<header id="masthead" class="site-header">
-			<div class="site-branding">
-				<?php
-			the_custom_logo();
-			if ( is_front_page() && is_home() ) :
-				?>
-				<h1 class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>"
-						rel="home"><?php bloginfo( 'name' ); ?></a></h1>
-				<?php
-			else :
-				?>
-				<p class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>"
-						rel="home"><?php bloginfo( 'name' ); ?></a></p>
-				<?php
-			endif;
-			$myAwesomeTheme_description = get_bloginfo( 'description', 'display' );
-			if ( $myAwesomeTheme_description || is_customize_preview() ) :
-				?>
-				<p class="site-description"><?php echo $myAwesomeTheme_description; /* WPCS: xss ok. */ ?></p>
-				<?php endif; ?>
-			</div><!-- .site-branding -->
-
 			<nav class="navbar navbar-expand-md navbar-dark bg-dark" role="navigation">
 				<div class="container">
 					<!-- Brand and toggle get grouped for better mobile display -->
