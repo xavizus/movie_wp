@@ -1,4 +1,7 @@
 Ni ska bygga en film-site i WordPress.
+Inloggningsuppgifter:
+Användarnamn: micke
+Lösenord: micke
 
 # G
 

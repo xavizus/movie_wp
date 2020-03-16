@@ -102,7 +102,7 @@ if (!class_exists('test\MovieRajtingPlugin')) {
              */
             foreach ($this->metaDataFields as $key => $field) {
                 // Don't save IMDB field, if it's invalid.
-                if ($field == 'movie_imdb_id' && !$this->failedToFetchIMDB) {
+                if ($field == 'movie_imdb_id' && $this->failedToFetchIMDB) {
                     continue;
                 }
 
@@ -320,6 +320,9 @@ if (!class_exists('test\MovieRajtingPlugin')) {
             return $data;
         }
 
+        /**
+         * Calculate the rating
+         */
         private function calculateRating($currentMetaData)
         {
             $totalStars = 0;
@@ -356,12 +359,23 @@ if (!class_exists('test\MovieRajtingPlugin')) {
         {
             $IMDBID = is_object($request) ? $request['imdbid'] : $request;
 
-            #$data = json_decode(file_get_contents(sprintf("https://www.omdbapi.com/?i=%s&apikey=%s", $IMDBID, OMDBAPIKEY)), true);
+            $data = json_decode(
+                file_get_contents(
+                    sprintf(
+                        "https://www.omdbapi.com/?i=%s&apikey=%s",
+                        $IMDBID,
+                        OMDBAPIKEY
+                    )
+                ),
+                true
+            );
+            /*
             if ($IMDBID == 'tt3896198') {
                 $data = json_decode(file_get_contents(plugin_dir_url(__FILE__) . 'testdata.json', true));
             } else {
                 $data = json_decode(file_get_contents(plugin_dir_url(__FILE__) . 'faileddata.json', true));
             }
+            */
             return $data;
         }
 

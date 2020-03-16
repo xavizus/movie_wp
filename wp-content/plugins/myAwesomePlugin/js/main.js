@@ -44,7 +44,7 @@ function init() {
     });
 
     // insert blocks to the editor
-    wp.data.dispatch('core/block-editor').insertBlocks([block, imageblock]);
+    wp.data.dispatch('core/block-editor').insertBlocks([block]);
 
     // change title.
     wp.data.dispatch('core/editor').editPost({
