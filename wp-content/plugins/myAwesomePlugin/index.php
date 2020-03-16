@@ -55,15 +55,15 @@ if (!class_exists('test\MovieRajtingPlugin')) {
             register_deactivation_hook(__FILE__, array($this, 'unloadCpt'));
             add_action('add_meta_boxes', array($this, 'addCustomMetaBox'));
             add_action('rest_api_init', array($this, 'loadCustomApi'));
-            add_action('save_post_movies', array($this, 'save_meta_data'), 10, 2);
-            add_action('wp_insert_post_data', array($this, 'my_save_post'));
+            add_action('save_post_movies', array($this, 'saveMetaData'), 10, 2);
+            add_action('wp_insert_post_data', array($this, 'mySavePost'));
             add_filter('posts_results', array($this, 'orderByRating'), 10, 2);
         }
 
         /**
          * called by hook wp_insert_post_data.
          */
-        public function my_save_post($post)
+        public function mySavePost($post)
         {
             // run only for post_type movies
             if ($post['post_type'] == 'movies') {
@@ -72,13 +72,15 @@ if (!class_exists('test\MovieRajtingPlugin')) {
                     $data = $this->fetchIMDBData(sanitize_text_field($_POST['movie_imdb_id']));
                     if ($data->Response == 'False') {
                         $this->failedToFetchIMDB = true;
-                        // Gutenberg api sucks... Can't find any information on how to send an error to Gutenberg, to let it know something went wrong...
+                        // Gutenberg api sucks... Can't find any information on how to send an error to Gutenberg,
+                        // to let it know something went wrong...
                         return;
                     }
                     $_POST['movie_released'] = $data->Released;
                     $_POST['movie_actors'] = $data->Actors;
                     $_POST['movie_poster'] = $data->Poster;
-                    $post['post_content'] = "<!-- wp:paragraph --><p>" . sanitize_text_field($data->Plot) . "</p><!-- /wp:paragraph -->";
+                    $post['post_content'] =
+                    "<!-- wp:paragraph --><p>" . sanitize_text_field($data->Plot) . "</p><!-- /wp:paragraph -->";
                     $post['post_title'] = sanitize_text_field($data->Title);
                 }
             }
@@ -89,7 +91,7 @@ if (!class_exists('test\MovieRajtingPlugin')) {
         /**
          * called by hook save_post_movies
          */
-        public function save_meta_data($post_ID, $post)
+        public function saveMetaData($post_ID, $post)
         {
             // Check if user posted a movie_poster, and make sure that the post not already got a poster.
             if (isset($_POST['movie_poster']) && !empty($_POST['movie_poster'] && !has_post_thumbnail($post_ID))) {
@@ -386,16 +388,21 @@ if (!class_exists('test\MovieRajtingPlugin')) {
         {
             if (get_post_type($post_id) == 'movies') {
                 wp_enqueue_style('movies-style', plugin_dir_url(__FILE__) . "/css/style.css", array(), '1.0');
-                wp_enqueue_style('movies-bootstrap', plugin_dir_url(__FILE__) . "/css/bootstrap.min.css", array(), '1.0');
+                wp_enqueue_style(
+                    'movies-bootstrap',
+                    plugin_dir_url(__FILE__) . "/css/bootstrap.min.css",
+                    array(),
+                    '1.0'
+                );
                 wp_enqueue_script('movies-latest-jquery', plugin_dir_url(__FILE__) . '/js/jquery.js');
-                add_action('enqueue_block_editor_assets', array($this, 'myplugin_enqueue_block_editor_assets'));
+                add_action('enqueue_block_editor_assets', array($this, 'mypluginEnqueueBlockEditorAssets'));
             }
         }
 
         /**
          * Injects javascript file with Gutenberg Api (some part of it).
          */
-        public function myplugin_enqueue_block_editor_assets()
+        public function mypluginEnqueueBlockEditorAssets()
         {
             wp_enqueue_script(
                 'myplugin-block',
@@ -525,7 +532,8 @@ if (!class_exists('test\MovieRajtingPlugin')) {
             <div class="form-group row">
                 <label for="movie_imdb_id" class="col-sm-2 col-form-label">IMDb-ID</label>
                 <div class="col">
-                    <input type="text" name="movie_imdb_id" id="movie_imdb_id" class="form-control" value="<?=$_movies_imdb?>">
+                    <input type="text" name="movie_imdb_id" id="movie_imdb_id" class="form-control"
+                     value="<?=$_movies_imdb?>">
                     <div class="invalid-feedback">
                         Not a vaild IMDb-ID
                     </div>
@@ -538,7 +546,8 @@ if (!class_exists('test\MovieRajtingPlugin')) {
             <div class="form-group row">
                 <label for="movie_released" class="col-sm-2 col-form-label">Released</label>
                 <div class="col">
-                    <input name="movie_released" id="movie_released" class="form-control" value="<?=$_movies_released?>">
+                    <input name="movie_released" id="movie_released" class="form-control" 
+                    value="<?=$_movies_released?>">
                 </div>
             </div>
 
