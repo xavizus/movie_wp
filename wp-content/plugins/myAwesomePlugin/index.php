@@ -70,18 +70,19 @@ if (!class_exists('test\MovieRajtingPlugin')) {
                 // Controll if user used autofill button.
                 if ($_POST['movie_autofilled'] == '0' && !empty($_POST['movie_imdb_id'])) {
                     $data = $this->fetchIMDBData(sanitize_text_field($_POST['movie_imdb_id']));
+                    error_log(print_r($data, true));
                     if ($data->Response == 'False') {
                         $this->failedToFetchIMDB = true;
                         // Gutenberg api sucks... Can't find any information on how to send an error to Gutenberg,
                         // to let it know something went wrong...
                         return;
                     }
-                    $_POST['movie_released'] = $data->Released;
-                    $_POST['movie_actors'] = $data->Actors;
-                    $_POST['movie_poster'] = $data->Poster;
+                    $_POST['movie_released'] = $data['Released'];
+                    $_POST['movie_actors'] = $data['Actors'];
+                    $_POST['movie_poster'] = $data['Poster'];
                     $post['post_content'] =
-                    "<!-- wp:paragraph --><p>" . sanitize_text_field($data->Plot) . "</p><!-- /wp:paragraph -->";
-                    $post['post_title'] = sanitize_text_field($data->Title);
+                    "<!-- wp:paragraph --><p>" . sanitize_text_field($data['Plot']) . "</p><!-- /wp:paragraph -->";
+                    $post['post_title'] = sanitize_text_field($data['Title']);
                 }
             }
             return $post;

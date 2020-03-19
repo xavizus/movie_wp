@@ -3,6 +3,13 @@ Inloggningsuppgifter:
 Användarnamn: micke
 Lösenord: micke
 
+IMDB idn:
+tt4728568 : Dungeon ni Deai wo Motomeru no wa Machigatteiru Darou ka  
+tt0240493 : excel saga 
+tt0845738 : When they cry
+
+Möteid: 718 0695
+
 # G
 
 - [x] Siten ska ha ett lämpligt tema. Eget eller färdigt spelar ingen roll.
@@ -20,4 +27,4 @@ Lösenord: micke
 - [x] Det ska finnas en egengjord filmlista (archive). Du måste visa att du förstår WPs arkitektur tillräckligt bra för att göra det på ett beständigt sätt.
   - Kommentar från lärare __Jag tänker t ex att din lista inte ska försvinna om du uppdaterar temat. Annars tänker jag mig att man gör ett arkiv, men ja, att loopa filmer på en sida.__
   - [x] I filmlistan ska de filmer som har ett IMDb-id ifyllt indikeras med en liten ikon eller liknande.
-- [ ] Man kan bara få VG om man blir klar i tid.
+- [x] Man kan bara få VG om man blir klar i tid.
